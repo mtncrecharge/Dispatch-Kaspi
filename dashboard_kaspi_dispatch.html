@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Kaspi Dispatch</title>
+<style>
+:root {
+  --bg: #0f1117; --card: #1a1d27; --border: #2a2d3a;
+  --text: #e2e8f0; --muted: #64748b;
+  --blue: #3b82f6; --green: #22c55e; --yellow: #f59e0b;
+  --red: #ef4444; --purple: #a855f7; --cyan: #06b6d4;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+.header { background:var(--card); border-bottom:1px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; }
+.header h1 { font-size:1.2rem; font-weight:700; color:#fff; }
+.header p  { font-size:12px; color:var(--muted); margin-top:2px; }
+.hright { display:flex; align-items:center; gap:10px; }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; display:inline-block; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.rtime { font-size:11px; color:var(--muted); }
+.btnr { background:var(--border); border:1px solid #3a3d4a; color:var(--text); padding:6px 14px; border-radius:6px; cursor:pointer; font-size:12px; }
+.btnr:hover { background:#2a2d3a; }
+.main { padding:1.5rem; }
+.summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:1rem; margin-bottom:1.5rem; }
+.scard { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:1rem 1.2rem; }
+.scard .lbl { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px; }
+.scard .val { font-size:2rem; font-weight:700; line-height:1; }
+.scard .sub { font-size:11px; color:var(--muted); margin-top:4px; }
+.filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:1.2rem; }
+.finput { background:var(--card); border:1px solid var(--border); color:var(--text); padding:7px 12px; border-radius:6px; font-size:12px; outline:none; min-width:200px; }
+.finput:focus { border-color:var(--blue); }
+.fsel { background:var(--card); border:1px solid var(--border); color:var(--text); padding:7px 12px; border-radius:6px; font-size:12px; outline:none; cursor:pointer; }
+.cnt { background:var(--border); color:var(--muted); font-size:11px; padding:4px 10px; border-radius:20px; margin-left:auto; }
+.tbl-wrap { background:var(--card); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+.tbl-scr  { overflow-x:auto; max-height:65vh; overflow-y:auto; }
+table { width:100%; border-collapse:collapse; font-size:12px; }
+thead { position:sticky; top:0; z-index:10; background:#12151f; }
+th { padding:10px 14px; text-align:left; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; white-space:nowrap; border-bottom:1px solid var(--border); }
+tbody tr { border-bottom:1px solid var(--border); }
+tbody tr:hover { background:rgba(255,255,255,0.03); }
+tbody tr:last-child { border-bottom:none; }
+td { padding:10px 14px; white-space:nowrap; }
+td.nc { white-space:normal; max-width:220px; line-height:1.4; }
+td.lc { white-space:normal; max-width:180px; line-height:1.4; }
+.badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+.b-open   { background:rgba(239,68,68,0.15);   color:var(--red); }
+.b-done   { background:rgba(34,197,94,0.15);   color:var(--green); }
+.b-prog   { background:rgba(245,158,11,0.15);  color:var(--yellow); }
+.b-rep    { background:rgba(59,130,246,0.15);  color:var(--blue); }
+.b-pick   { background:rgba(168,85,247,0.15);  color:var(--purple); }
+.b-off    { background:rgba(239,68,68,0.15);   color:var(--red); }
+.b-cat    { background:rgba(6,182,212,0.12);   color:var(--cyan); }
+.b-tier1  { background:rgba(245,158,11,0.15);  color:var(--yellow); }
+.b-tier2  { background:rgba(100,116,139,0.12); color:var(--muted); }
+.b-online { background:rgba(34,197,94,0.15);   color:var(--green); }
+.b-offline{ background:rgba(239,68,68,0.15);   color:var(--red); }
+.b-type   { background:rgba(168,85,247,0.12);  color:var(--purple); }
+.link-btn { display:inline-block; padding:3px 10px; border-radius:4px; font-size:11px; font-weight:500; text-decoration:none; background:rgba(59,130,246,0.12); color:var(--blue); border:1px solid rgba(59,130,246,0.2); transition:all 0.2s; }
+.link-btn:hover { background:rgba(59,130,246,0.2); }
+.loading { display:flex; align-items:center; justify-content:center; padding:4rem; gap:1rem; flex-direction:column; }
+.spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--blue); border-radius:50%; animation:spin 0.8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.empty  { text-align:center; padding:3rem; color:var(--muted); }
+.footer { font-size:11px; color:var(--muted); margin-top:1rem; text-align:right; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🛠 Dashboard Kaspi Dispatch</h1>
+    <p>Monitoring tiket dispatch — Auto refresh setiap 5 menit</p>
+  </div>
+  <div class="hright">
+    <span class="dot"></span>
+    <span class="rtime" id="rtime">Memuat...</span>
+    <button class="btnr" onclick="loadData()">⟳ Refresh</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="summary" id="summary"></div>
+
+  <div class="filters">
+    <input class="finput" id="srch" placeholder="🔍 Cari terminal / tiket / teknisi..." oninput="render()">
+    <select class="fsel" id="fStatus" onchange="render()">
+      <option value="">Semua Status</option>
+    </select>
+    <select class="fsel" id="fCat" onchange="render()">
+      <option value="">Semua Kategori</option>
+    </select>
+    <select class="fsel" id="fTier" onchange="render()">
+      <option value="">Semua Tier</option>
+    </select>
+    <select class="fsel" id="fSort" onchange="render()">
+      <option value="ts-desc">Timestamp ↓ Terbaru</option>
+      <option value="ts-asc">Timestamp ↑ Terlama</option>
+      <option value="tier-asc">Tier ↑ (1 dulu)</option>
+      <option value="pb-desc">PB% ↓</option>
+    </select>
+    <span class="cnt" id="cnt">0 tiket</span>
+  </div>
+
+  <div class="tbl-wrap"><div class="tbl-scr">
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span style="color:var(--muted);font-size:13px">Memuat data dari Google Sheets...</span>
+    </div>
+    <table id="tbl" style="display:none">
+      <thead><tr>
+        <th>#</th>
+        <th>Tiket ID</th>
+        <th>Timestamp</th>
+        <th>Terminal</th>
+        <th>Type</th>
+        <th>Tier</th>
+        <th>Lokasi</th>
+        <th>Koneksi</th>
+        <th>PB%</th>
+        <th>Kategori</th>
+        <th>Issue</th>
+        <th>Teknisi</th>
+        <th>Status</th>
+        <th>Form</th>
+        <th>Ops App</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="empty" style="display:none">Tidak ada data yang cocok</div>
+  </div></div>
+  <p class="footer" id="footer"></p>
+</div>
+
+<script>
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTekF1eTtWvBtMsaovaCFPiPfKaXrcsyki_mGne9Qk-9bxRQRpWvSQfaJz-sPE98yB-xMoWooiLQXzd/pub?gid=0&single=true&output=csv';
+
+// KOLOM: A(0)=tsmtID B(1)=Timestamp C(2)=TerminalID D(3)=TerminalName E(4)=TypeID
+// F(5)=Tier G(6)=Loc H(7)=oVo I(8)=currentPB J(9)=IssueCategory K(10)=Issues
+// L(11)=TECHNICIAN M(12)=Link N(13)=Status O(14)=Ops_apps
+
+let DATA = [];
+
+function parseCSV(text) {
+  return text.trim().split('\n').map(line => {
+    const cols = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; }
+      else if (c === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+      else { cur += c; }
+    }
+    cols.push(cur.trim());
+    return cols;
+  });
+}
+
+function validRow(r) {
+  return r[0] && r[0].trim().startsWith('TS');
+}
+
+async function loadData() {
+  document.getElementById('rtime').textContent = 'Memuat...';
+  try {
+    const text = await fetch(CSV_URL + '&t=' + Date.now()).then(r => r.text());
+    DATA = parseCSV(text).slice(1).filter(validRow).map(r => ({
+      id:        r[0].trim(),
+      timestamp: r[1].trim(),
+      termId:    r[2].trim(),
+      termName:  r[3].trim(),
+      typeId:    r[4].trim(),
+      tier:      r[5].trim(),
+      loc:       r[6].trim(),
+      ovo:       r[7].trim(),
+      pb:        parseInt(r[8]) || 0,
+      pbRaw:     r[8].trim(),
+      cat:       r[9].trim(),
+      issue:     r[10].trim(),
+      tech:      r[11].trim(),
+      link:      r[12].trim(),
+      status:    r[13].trim(),
+      opsApp:    r[14].trim()
+    }));
+
+    fillFilters();
+    render();
+    document.getElementById('rtime').textContent = 'Update: ' + new Date().toLocaleTimeString('id-ID');
+  } catch(e) {
+    document.getElementById('rtime').textContent = '⚠ Gagal memuat';
+    console.error(e);
+  }
+}
+
+function fillFilters() {
+  fillSel('fStatus', [...new Set(DATA.map(r=>r.status).filter(Boolean))].sort());
+  fillSel('fCat',    [...new Set(DATA.map(r=>r.cat).filter(Boolean))].sort());
+  fillSel('fTier',   [...new Set(DATA.map(r=>r.tier).filter(Boolean))].sort());
+}
+
+function fillSel(id, vals) {
+  const sel = document.getElementById(id), cur = sel.value;
+  const first = sel.options[0].outerHTML;
+  sel.innerHTML = first;
+  vals.forEach(v => { const o = document.createElement('option'); o.value=v; o.textContent=v; if(v===cur) o.selected=true; sel.appendChild(o); });
+}
+
+function statusBadge(s) {
+  if (!s) return '<span class="badge b-cat">-</span>';
+  const sl = s.toLowerCase();
+  if (sl === 'open')   return `<span class="badge b-open">🔴 Open</span>`;
+  if (sl === 'done' || sl === 'closed') return `<span class="badge b-done">✅ Done</span>`;
+  if (sl.includes('progress')) return `<span class="badge b-prog">🟡 On Progress</span>`;
+  return `<span class="badge b-cat">${s}</span>`;
+}
+
+function catBadge(c) {
+  if (!c) return '-';
+  if (c.toLowerCase().includes('replenish')) return `<span class="badge b-rep">Replenish PB</span>`;
+  if (c.toLowerCase().includes('pickup'))    return `<span class="badge b-pick">Pickup</span>`;
+  if (c.toLowerCase().includes('offline'))   return `<span class="badge b-off">Offline</span>`;
+  return `<span class="badge b-cat">${c}</span>`;
+}
+
+function tierBadge(t) {
+  return t === '1'
+    ? `<span class="badge b-tier1">⭐ Tier 1</span>`
+    : `<span class="badge b-tier2">Tier ${t}</span>`;
+}
+
+function render() {
+  const s   = document.getElementById('srch').value.toLowerCase();
+  const st  = document.getElementById('fStatus').value;
+  const cat = document.getElementById('fCat').value;
+  const tr  = document.getElementById('fTier').value;
+  const sv  = document.getElementById('fSort').value;
+
+  let d = DATA.filter(r => {
+    const ms = !s || r.termName.toLowerCase().includes(s) || r.id.toLowerCase().includes(s) || r.tech.toLowerCase().includes(s) || r.termId.toLowerCase().includes(s);
+    const mst = !st  || r.status === st;
+    const mc  = !cat || r.cat === cat;
+    const mt  = !tr  || r.tier === tr;
+    return ms && mst && mc && mt;
+  });
+
+  d.sort((a,b) => {
+    if (sv === 'ts-desc')  return b.timestamp.localeCompare(a.timestamp);
+    if (sv === 'ts-asc')   return a.timestamp.localeCompare(b.timestamp);
+    if (sv === 'tier-asc') return parseInt(a.tier) - parseInt(b.tier);
+    if (sv === 'pb-desc')  return b.pb - a.pb;
+    return 0;
+  });
+
+  // Summary
+  const total   = d.length;
+  const open    = d.filter(r => r.status.toLowerCase() === 'open').length;
+  const done    = d.filter(r => r.status.toLowerCase() === 'done' || r.status.toLowerCase() === 'closed').length;
+  const replen  = d.filter(r => r.cat.toLowerCase().includes('replenish')).length;
+  const pickup  = d.filter(r => r.cat.toLowerCase().includes('pickup')).length;
+  const offline = d.filter(r => r.cat.toLowerCase().includes('offline')).length;
+  const tier1   = d.filter(r => r.tier === '1').length;
+
+  document.getElementById('summary').innerHTML = [
+    {l:'Total Tiket',   v:total,   c:'var(--blue)',   s:`dari ${DATA.length} total`},
+    {l:'Open',          v:open,    c:'var(--red)',    s:'belum selesai'},
+    {l:'Done',          v:done,    c:'var(--green)',  s:'selesai'},
+    {l:'Replenish PB',  v:replen,  c:'var(--blue)',   s:'tiket replenish'},
+    {l:'Pickup',        v:pickup,  c:'var(--purple)', s:'tiket pickup'},
+    {l:'Offline',       v:offline, c:'var(--yellow)', s:'tiket offline'},
+    {l:'Tier 1',        v:tier1,   c:'var(--yellow)', s:'prioritas tinggi'},
+  ].map(x=>`<div class="scard"><div class="lbl">${x.l}</div><div class="val" style="color:${x.c}">${x.v}</div><div class="sub">${x.s}</div></div>`).join('');
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('cnt').textContent = d.length + ' tiket';
+
+  if (!d.length) {
+    document.getElementById('tbl').style.display = 'none';
+    document.getElementById('empty').style.display = 'block';
+    return;
+  }
+  document.getElementById('tbl').style.display = 'table';
+  document.getElementById('empty').style.display = 'none';
+
+  document.getElementById('tbody').innerHTML = d.map((r,i) => `<tr>
+    <td style="color:var(--muted)">${i+1}</td>
+    <td style="font-size:11px;color:var(--cyan);font-weight:500">${r.id}</td>
+    <td style="font-size:11px;color:var(--muted)">${r.timestamp}</td>
+    <td class="nc"><div style="font-weight:500">${r.termName||'-'}</div><div style="font-size:10px;color:var(--muted)">${r.termId}</div></td>
+    <td><span class="badge b-type">${r.typeId||'-'}</span></td>
+    <td>${tierBadge(r.tier)}</td>
+    <td style="font-size:11px;color:var(--muted)">${r.loc||'-'}</td>
+    <td><span class="badge ${r.ovo.toLowerCase()==='online'?'b-online':'b-offline'}">${r.ovo||'-'}</span></td>
+    <td style="text-align:center;font-weight:600;color:${parseInt(r.pb)>=50?'var(--green)':parseInt(r.pb)>=25?'var(--yellow)':'var(--red)'}">${r.pbRaw||'-'}</td>
+    <td>${catBadge(r.cat)}</td>
+    <td class="lc" style="font-size:11px;color:var(--muted)">${r.issue||'-'}</td>
+    <td style="font-size:11px;color:var(--text)">${r.tech||'-'}</td>
+    <td>${statusBadge(r.status)}</td>
+    <td>${r.link ? `<a href="${r.link}" target="_blank" class="link-btn">Form ↗</a>` : '-'}</td>
+    <td>${r.opsApp ? `<a href="${r.opsApp}" target="_blank" class="link-btn">Ops ↗</a>` : '-'}</td>
+  </tr>`).join('');
+
+  document.getElementById('footer').textContent = 'Data terakhir diperbarui: ' + new Date().toLocaleString('id-ID');
+}
+
+loadData();
+setInterval(loadData, 5 * 60 * 1000);
+</script>
+</body>
+</html>
